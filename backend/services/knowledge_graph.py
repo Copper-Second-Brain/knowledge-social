@@ -51,3 +51,26 @@ class KnowledgeGraphService:
             }
             for neighbor in neighbors
         ]
+    def get_all_documents(self) -> List[Dict]:
+        """Retrieve all document nodes and try to identify their authors."""
+        documents = []
+        for node, attr in self.graph_store.graph.nodes(data=True):
+            if attr.get('type') == 'document':
+                author_id = None
+                # Find an adjacent node connected via an 'authorship' edge.
+                # (Assumes the graph is undirected; if directed, you may need to check in_edges.)
+                for neighbor in self.graph_store.graph.neighbors(node):
+                    edge_data = self.graph_store.graph.get_edge_data(node, neighbor)
+                    if edge_data and edge_data.get('type') == 'authorship':
+                        # In the add_document method, the authorship edge is added from user -> document.
+                        # In an undirected graph, just pick the adjacent node as the author.
+                        author_id = neighbor
+                        break
+
+                documents.append({
+                    'id': node,
+                    'title': attr.get('title'),
+                    'content': attr.get('content'),
+                    'author_id': author_id
+                })
+        return documents

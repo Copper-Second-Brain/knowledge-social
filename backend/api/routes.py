@@ -51,15 +51,22 @@ def init_routes(kg_service: KnowledgeGraphService,
             )
         
         return jsonify({'document_id': doc.id})
+    
+    @api.route('/documents', methods=['GET'])
+    def list_documents() -> Dict[str, Any]:
+        """Return all documents stored in the graph store."""
+        documents = kg_service.get_all_documents()
+        return jsonify({'documents': documents})
 
     @api.route('/users/<user_id>/recommendations')
     def get_recommendations(user_id: str) -> Dict[str, Any]:
         recommendations = recommendation_service.compute_user_similarities(user_id)
+        print(recommendations)
         return jsonify(recommendations)
 
     @api.route('/users/<user_id>/graph')
     def get_user_graph(user_id: str) -> Dict[str, Any]:
         graph = kg_service.get_user_graph(user_id)
         return jsonify(nx.node_link_data(graph))
-
+    
     return api
